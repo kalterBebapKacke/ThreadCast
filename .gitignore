@@ -3,6 +3,24 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# custom
+content
+/media
+#Thumnials/media/fertig.svg
+database
+database.sqbpro
+collect/test.html
+ai/tortoise_
+ai/tts
+ai/output.wav
+ai/sample_voice.wav
+ai/Video_now.mp3
+pagecrawler_here
+pyextract_here
+PycharmProjects
+.idea/
+Thumnials/media/fertig.svg
+
 # C extensions
 *.so
 
