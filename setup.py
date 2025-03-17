@@ -28,14 +28,14 @@ def render_command(input_path, output_path):
     command = [
         "ffmpeg",
         "-y",
-        "-i", input_path,
+        "-t", str(5 * 60),
+        "-i", f"{input_path}",
         "-vf",
         f"scale=-1:1920", #f"scale=-1:iw",
         "-an",
         "-loglevel", "error",
-        output_path
+        f"{output_path}"
     ]
-
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as e:
@@ -43,20 +43,18 @@ def render_command(input_path, output_path):
 #ffmpeg -i Unbenannt.webm -vf "scale=-1:iw" output.webm
 
 def prerender_videos():
-    acceptable_width = [1920, 2560, ] #3840
+    acceptable_width = [1920, 2560,] #3840
     path = get_path(0, 'media', 'video', con=False)
     dirs = os.listdir(path)
     videos = [join_path(path, x) for x in dirs if os.path.isfile(join_path(path, x))]
     for video_path in videos:
         height, width = get_dimensions_from_path(video_path)
-        print(width)
-        print(height)
         if width * 9 / 16 == height and width in acceptable_width:
-            print('rendering video')
             path, extension = split_extension(video_path)
             out = f'{path}_render{extension}'
             render_command(video_path, out)
-            os.remove(video_path)
+            if os.path.isfile(out):
+                os.remove(video_path)
 
 
 if __name__ == '__main__':

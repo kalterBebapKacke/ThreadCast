@@ -16,3 +16,4 @@ imblearn
 ffmpeg
 pagecrawler==1.1.2
 elevenlabs
+rich

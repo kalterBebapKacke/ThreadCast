@@ -20,7 +20,10 @@ pyextract_here
 PycharmProjects
 .idea/
 Thumnials/media/fertig.svg
+Thumnials/textbox_with_embedded_media.svg
+Thumnials/Reddit Stories Card (Community)(3)/
 
+xdcv
 # C extensions
 *.so
 

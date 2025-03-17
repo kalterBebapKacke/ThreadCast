@@ -67,6 +67,7 @@ def create_complex_video2(
         video_tmp_path1,
         codec='mpeg4',
         verbose = False,
+        logger=None,
     )
 
     #subtitles
