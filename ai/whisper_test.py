@@ -109,8 +109,13 @@ def json_to_srt(json_data, time, chars_per_segment=0):
             sub_segments = [segment]
 
         for sub_segment in sub_segments:
-            start_time = convert_time_to_srt(sub_segment['start']+time)
-            end_time = convert_time_to_srt(sub_segment['end']+time)
+            start_time = convert_time_to_srt(sub_segment['start'] + time)
+            end_time = convert_time_to_srt(sub_segment['end'] + time)
+            print(convert_time_to_srt(sub_segment['start']+time))
+            print(convert_time_to_srt(sub_segment['start']))
+            print('')
+            print(convert_time_to_srt(sub_segment['end']+time))
+            print(convert_time_to_srt(sub_segment['end']))
 
             # Format: Index number
             srt_content.append(str(counter))

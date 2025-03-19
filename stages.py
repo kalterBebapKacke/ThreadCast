@@ -39,9 +39,9 @@ logger_name = 'logger'
 
 stages = [
     'CollectData', #1
-    'GetGPT', #2
-    'GenerateSVG', #3
-    'Selection', # 4
+    'GetGPT', #2, or Replace Text
+    'Selection', # 3
+    'GenerateSVG' # 4
     'GenerateAudio', # 5
     'FilterAudio',  # 6
     'GenerateSUB', #7
@@ -424,8 +424,7 @@ def stage_GenerateSUB(client):
     logger.debug(f'Running this stage on these ids: {ids}')
 
     invalid_ids = list()
-    #test purpose
-    #content = [['lol', 'lol2', 1]]
+
     # paths to audio
     paths = [get_path(x[2], 'text.mp3') for x in content]
     # time addition to title
@@ -443,6 +442,9 @@ def stage_GenerateSUB(client):
             logger.error(f'Exception occurred when running stage_GenerateSUB(path={audio_path}): {e}')
     del model
 
+    for x in transcripts:
+        print(x)
+
     # convert transcripts to only have that many words
     for x in range(len(transcripts)):
         if not transcripts[x] is None:
@@ -459,7 +461,7 @@ def stage_GenerateSUB(client):
     _return_ids = list()
     for x in content:
         if not x[2] in invalid_ids:
-            update_stage(client, x[2])
+            #update_stage(client, x[2])
             _return_ids.append(x[2])
     valid_ids = [x[2] for x in content if not x[2] in invalid_ids]
 
@@ -515,7 +517,7 @@ if __name__ == '__main__':
     c = connection()
     #clean_content(c)
     logger = create_new_logger()
-    logger.debug('Test')
+    #logger.debug('Test')
 
     #stage_CollectData(c,)
     #stage_GPT(c)
@@ -525,10 +527,9 @@ if __name__ == '__main__':
 
     #stage_GenerateAudio(c)
     #stage_FilterAudio(c)
-    #stage_GenerateSUB(c)
+    stage_GenerateSUB(c)
     #stage_Edit(c)
 
     #editing.convert_to_vertical(video, target)
 
     #clean_content(c)
-    print(os.getcwd())

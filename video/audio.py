@@ -41,7 +41,7 @@ def remove_silence(input_path, output_path):
         "-y",
         "-i", input_path,
         "-vf",
-        f"silenceremove=start_periods=1:stop_periods=-1:stop_duration=0.3:start_threshold=-45dB:stop_threshold=-45dB",
+        f"silenceremove=start_periods=1:stop_periods=-1:stop_duration=0.1:start_threshold=-45dB:stop_threshold=-45dB",
         "-c:a", "copy",
         "-loglevel", "error",
         output_path
@@ -99,8 +99,8 @@ def filter_audio(text_path, title_path, content_path):
     remove_silence(text_path, tmp1)
 
     # speed up audio
-    speed_up_audio(tmp1, tmp2, 1.0)
-    speed_up_audio(title_path, tmp3, 1.0)
+    speed_up_audio(tmp1, tmp2, 1.1)
+    speed_up_audio(title_path, tmp3, 1.1)
 
     # remove tmp and unnessasary files
     os.remove(text_path)
