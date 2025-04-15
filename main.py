@@ -10,6 +10,7 @@ import time
 from interface import options, data_view #progessbar_custom
 from tqdm import tqdm
 from rich.progress import Progress, BarColumn, TextColumn
+import traceback
 
 from stages import stage_SVG
 
@@ -27,7 +28,7 @@ stages_list = {
 def install_requirements():
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
 
-def run_stage(stage, client, logger, bars=None, progress:Progress=None, stage_num=0,run_stage_int:int=0, start_from:bool=True):
+def run_stage(stage, client, logger, bars=None, progress:Progress=None, stage_num=0, run_stage_int:int=0, start_from:bool=True):
     try:
         if (run_stage_int <= stage_num and start_from is True) or (run_stage_int == stage_num and start_from is False):
             ids = stages_list[stage](client)
@@ -128,6 +129,8 @@ def run_stages(client, progress, logger, run_stage_int:int=0, start_from:bool=Tr
 
             input('Press any key to continue . . .')
 
+            options.clear_screen()
+
             progress.__init__()
 
             content = client.basic_read(None, 'id', 'stage')
@@ -167,6 +170,8 @@ def run_stages(client, progress, logger, run_stage_int:int=0, start_from:bool=Tr
 def wrapper_run(client):
     logger = stages.create_new_logger()
     console = Console(force_terminal=True)
+    cfg = stages.config_class()
+    cfg.load_args()
     progress: Progress = Progress(
         TextColumn("[bold blue]{task.description}"),
         BarColumn(),
@@ -174,13 +179,13 @@ def wrapper_run(client):
         console=console
     )
     try:
-        run_stages(client, progress, logger, 8, True)
+        run_stages(client, progress, logger, 7, True)
     except Exception as e:
         try:
             progress.stop()
         except Exception:
             logger.debug('Failed to close Progressbar render')
-        logger.error(f'Error when running stages:{e}')
+        logger.error(f'Error when running stages:{e}\n{traceback.format_exc()}')
 
 def test_func():
     bar = Bar('Processing', max=20)
@@ -195,7 +200,6 @@ def run():
             "name": "Erste Funktion",
             "func": test_func
         },
-
     }
     interface.options.zeige_menu(func_run)
 

@@ -1,3 +1,4 @@
+import datetime
 from Cython.Build.Dependencies import join_path
 from noideacore import sql
 from sympy.parsing.sympy_parser import auto_symbol
@@ -14,6 +15,9 @@ import shutil
 from random import randrange
 import logging
 from ai import filter_abreviations
+import random
+import json
+import traceback
 
 logging.getLogger("selenium").setLevel(logging.CRITICAL)
 
@@ -26,16 +30,19 @@ logger_name = 'logger'
 # - Ermöglichen weiblicher Stimme
 # - zweiten PC nutzen
 # - clear moviepy output
-# - exception handeling
 # - better setup
 # - more/better ai
 # - voice ai
 # - later: config for more customisation
-# - fixing main screen
 # - SVG verallgemeinern
 # - clear chat-gpt output
-# - look why undertitle is slightly off
-
+# - cache folder
+# - editing: image and subtitles
+# - better minecraft clips (later)
+# - automatic download
+# - get rid of slight delay on subtitles
+# - cv for downloading clips
+#
 
 stages = [
     'CollectData', #1
@@ -48,8 +55,6 @@ stages = [
     'Editing', # 8
     'Shipping', # 9
 ]
-
-
 
 def connection():
     client = sql.sqlite3('./database', ['stages'])
@@ -105,6 +110,14 @@ def random_media(dir:str):
     else:
         rand_number = 0
     return join_path(dir, files[rand_number])
+
+def random_media_generator(dir:str):
+    dirs = os.listdir(dir)
+    files = [x for x in dirs if os.path.isfile(join_path(dir, x))]
+    random.shuffle(files)
+    if len(files) != 0:
+        for file in files:
+            yield join_path(dir, file)
 
 
 def new_work(client, text:str, title:str):
@@ -164,7 +177,7 @@ def create_new_logger():
     logger.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    handler = logging.FileHandler(".log", encoding="utf-8", mode='w')
+    handler = logging.FileHandler(join_path('cache', '.log'), encoding="utf-8", mode='w')
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)
@@ -173,27 +186,75 @@ def create_new_logger():
     return logger
 
 def return_logger():
-    return logging.getLogger(logger_name)
+    logger = logging.getLogger(logger_name)
+    if not logger.hasHandlers():
+        logger = create_new_logger()
+    return logger
 
-def save_audio_sample(client, item):
-    client.basic_write(['audio_samples'], text=item[0])
-    client.basic_write(['audio_samples'], text=item[1])
+class config_class:
 
-    id_text = client.basic_read(['audio_samples'], 'id', text=item[0])[0][0]
-    id_title = client.basic_read(['audio_samples'], 'id', text=item[1])[0][0]
+    def __init__(self):
+        self.path = get_path(0, 'cache', 'config.json', con=False)
+        if os.path.exists(self.path):
+            with open(self.path, 'r') as config_file:
+                self.config: dict = json.load(config_file)
+        else:
+            self.config: dict = self.create_new()
 
-    scr_path_title = get_path(item[2], 'title.mp3')
-    scr_path_text = get_path(item[2], 'text.mp3')
-    dest_path = get_path(0, 'media', 'audio_samples', con=False)
+    def create_new(self):
+        new_config = {
+            'args' : {'video_use_name':'satisfying_videos',
+                      'video_location_path': get_path(0, 'media', 'video', con=False),
+                      },
+            'download_content' : {'satisfying_videos':[]},
+        }
+        return new_config
 
-    shutil.copy(scr_path_title, dest_path)
-    shutil.copy(scr_path_text, dest_path)
+    def __getitem__(self, item):
+        return self.config[item]
 
-    new_path_title = get_path(0, 'media', 'audio_samples', f'audio_{id_title}.mp3', con=False)
-    new_path_text = get_path(0, 'media', 'audio_samples', f'audio_{id_text}.mp3', con=False)
+    def __setitem__(self, key, value):
+        self.config[key] = value
 
-    os.rename(join_path(dest_path, 'title.mp3'), new_path_title)
-    os.rename(join_path(dest_path, 'text.mp3'), new_path_text)
+    def save_config(self):
+        with open(self.path, 'w') as config_file:
+            json.dump(self.config, config_file, indent=4)
+
+    def load_args(self):
+        args: dict = self.config['args']
+        for key in args.keys():
+            os.environ[key] = args[key]
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.save_config()
+
+def save_audio_sample(client, item, invalid_ids:list):
+
+    if not item[2] in invalid_ids:
+        scr_path_title = get_path(item[2], 'title.mp3')
+        scr_path_text = get_path(item[2], 'text.mp3')
+        dest_path = get_path(0, 'media', 'audio_samples', con=False)
+
+        if os.path.isfile(scr_path_text):
+            client.basic_write(['audio_samples'], text=item[0])
+        if os.path.isfile(scr_path_text):
+            client.basic_write(['audio_samples'], text=item[1])
+        id_text = client.basic_read(['audio_samples'], 'id', text=item[0])[0][0]
+        id_title = client.basic_read(['audio_samples'], 'id', text=item[1])[0][0]
+
+        shutil.copy(scr_path_title, dest_path)
+        shutil.copy(scr_path_text, dest_path)
+
+        new_path_title = get_path(0, 'media', 'audio_samples', f'audio_{id_title}.mp3', con=False)
+        new_path_text = get_path(0, 'media', 'audio_samples', f'audio_{id_text}.mp3', con=False)
+
+        os.rename(join_path(dest_path, 'title.mp3'), new_path_title)
+        os.rename(join_path(dest_path, 'text.mp3'), new_path_text)
+    else:
+        raise RuntimeError
 
 def stage_CollectData(client):
     #html = collect.urls.scrape(collect.urls.url6)
@@ -222,7 +283,7 @@ def stage_CollectData(client):
                 new_work(client, text, title)
                 pass
         except Exception as e:
-            logger.error(f'Expection when writing new content: {e}')
+            logger.error(f'Expection when writing new content: {e}\n{traceback.format_exc()}')
     logger.info('Finished with stage_CollectData')
     return None
 
@@ -255,7 +316,7 @@ def stage_GPT(client):
         except Exception as e:
             _return_text.append('')
             _return_title.append('')
-            logger.error(f'Exception occurred when running stage_GPT: {e}')
+            logger.error(f'Exception occurred when running stage_GPT: {e}\n{traceback.format_exc()}')
     del model
 
     texts = _return_text
@@ -298,7 +359,7 @@ def stage_replacing_texts(client):
             titles.append(title)
             texts.append(text)
         except Exception as e:
-            logger.error(f'Exception occurred when running stage_ReplacingTexts(path={item[2]}): {e}')
+            logger.error(f'Exception occurred when running stage_ReplacingTexts(path={item[2]}): {e}\n{traceback.format_exc()}')
             invalid_ids.append(item[2])
             titles.append('')
             texts.append('')
@@ -336,7 +397,7 @@ def stage_SVG(client):
             card.convert_svg_to_png(get_path(item[2], 'Thumnail.svg'), get_path(item[2], 'Thumnail.png'))
         except Exception as e:
             invalid_ids.append(item[2])
-            logger.error(f'Exception occurred when running stage_SVG(id={item[2]}): {e}')
+            logger.error(f'Exception occurred when running stage_SVG(id={item[2]}): {e}\n{traceback.format_exc()}')
 
     for item in content:
         update_stage(client, item[2])
@@ -364,15 +425,15 @@ def stage_GenerateAudio(client):
         except Exception as e:
             #print(e)
             invalid_ids.append(item[2])
-            logger.error(f'Exception occurred when running stage_GenerateAudio(id={item[2]}): {e}')
+            logger.error(f'Exception occurred when running stage_GenerateAudio(id={item[2]}): {e}\n{traceback.format_exc()}')
 
     num_fails = 0
     for item in content:
         try:
-            save_audio_sample(client, item)
+            save_audio_sample(client, item, invalid_ids)
         except Exception as e:
             num_fails += 1
-            logger.error(f'Exception occurred when saving audio samples(id={item[2]}): {e}')
+            logger.error(f'Exception occurred when saving audio samples(id={item[2]}): {e}\n{traceback.format_exc()}')
     logger.debug(f'Saved Audio Samples with no Errors:{len(content)-num_fails}/{len(content)}')
 
 
@@ -402,7 +463,7 @@ def stage_FilterAudio(client):
             audio.filter_audio(text_path, title_path, content_path)
         except Exception as e:
             invalid_ids.append(x[2])
-            logger.error(f'Exception occurred when running stage_FilterAudio(id={x[2]}): {e}')
+            logger.error(f'Exception occurred when running stage_FilterAudio(id={x[2]}): {e}\n{traceback.format_exc()}')
 
     for x in content:
         if not x[2] in invalid_ids:
@@ -413,6 +474,7 @@ def stage_FilterAudio(client):
     logger.debug(f'Invalid Ids at the End of stage: {invalid_ids}')
     logger.info('Finished with stage_GenerateAudio')
     return valid_ids
+
 
 def stage_GenerateSUB(client):
     content = get_stage_content(client, 6)
@@ -427,41 +489,28 @@ def stage_GenerateSUB(client):
 
     # paths to audio
     paths = [get_path(x[2], 'text.mp3') for x in content]
+
+    # path to srt
+    paths_srt = [get_path(x[2], 'transcript.srt') for x in content]
+
     # time addition to title
     times = [whisper_test.get_audio_length(get_path(x[2], 'title.mp3')) for x in content]
 
-    # generate srt
-    transcripts = list()
-    model = whisper_test.model()
+    model = whisper_test.model_new()
+
     for i, audio_path in enumerate(paths):
         try:
-            transcripts.append(whisper_test.generate_single(audio_path, model))
+            model.generate(audio_path, paths_srt[i], times[i])
         except Exception as e:
             invalid_ids.append(ids[i])
-            transcripts.append(None)
-            logger.error(f'Exception occurred when running stage_GenerateSUB(path={audio_path}): {e}')
+            logger.error(f'Exception occurred when running stage_GenerateSUB(path={audio_path}): {e}\n{traceback.format_exc()}')
     del model
-
-    for x in transcripts:
-        print(x)
-
-    # convert transcripts to only have that many words
-    for x in range(len(transcripts)):
-        if not transcripts[x] is None:
-            transcripts[x] = whisper_test.json_to_srt(transcripts[x], times[x], chars_per_segment=15)
-
-    #print(transcripts)
-    # save transcripts to srt
-    for i in range(len(paths)):
-        if not transcripts[i] is None:
-            with open(get_path(content[i][2], 'transcript.srt'), 'w') as file:
-                file.write(str(transcripts[i]))
 
     # update stages
     _return_ids = list()
     for x in content:
         if not x[2] in invalid_ids:
-            #update_stage(client, x[2])
+            update_stage(client, x[2])
             _return_ids.append(x[2])
     valid_ids = [x[2] for x in content if not x[2] in invalid_ids]
 
@@ -483,22 +532,22 @@ def stage_Edit(client):
     invalid_ids = list()
 
     for item in content:
-        audio_path = random_media(get_path(0, 'media', 'audio', con=False))
         video_path = random_media(get_path(0, 'media', 'video', con=False))
+        video_generator = random_media_generator(join_path(os.environ['video_location_path'], os.environ['video_use_name']))
         try:
             editing.create_complex_video2(
                 audio_track1_path=get_path(item[2], 'title.mp3'),
                 audio_track2_path=get_path(item[2], 'text.mp3'),
-                music_path=audio_path,
                 video_path=video_path,
                 intro_image_path=get_path(item[2], 'Thumnail.png'),
                 srt_path=get_path(item[2], 'transcript.srt'),
                 output_path=get_path(item[2], f'video_{str(item[2])}.mp4'),
                 font_path=font_path,
-                tmp_path=get_path(item[2], 'video')
+                tmp_path=get_path(item[2], 'video'),
+                video_generator=video_generator
             )
         except Exception as e:
-            logger.error(f'Exception occurred when running stage_Edit(path={item[2]}): {e}')
+            logger.error(f'Exception occurred when running stage_Edit(id={item[2]}): {e}\n{traceback.format_exc()}')
             invalid_ids.append(item[2])
 
     valid_ids = [x[2] for x in content if x[2] not in invalid_ids]
@@ -511,11 +560,11 @@ def stage_Edit(client):
     return valid_ids
 
 
-
-
 if __name__ == '__main__':
+    cfg = config_class()
+    cfg.load_args()
     c = connection()
-    #clean_content(c)
+    clean_content(c)
     logger = create_new_logger()
     #logger.debug('Test')
 
@@ -528,8 +577,10 @@ if __name__ == '__main__':
     #stage_GenerateAudio(c)
     #stage_FilterAudio(c)
     stage_GenerateSUB(c)
-    #stage_Edit(c)
+    stage_Edit(c)
 
     #editing.convert_to_vertical(video, target)
 
     #clean_content(c)
+
+

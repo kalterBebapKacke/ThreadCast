@@ -17,3 +17,5 @@ ffmpeg
 pagecrawler==1.1.2
 elevenlabs
 rich
+stable-ts==2.19.0
+pandas==2.2.3

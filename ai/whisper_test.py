@@ -1,10 +1,24 @@
 import whisper
 from mutagen import File
 import sys
+import stable_whisper
+import re
+from datetime import datetime, timedelta
+from . import srt_edit
 
 def model():
     model = whisper.load_model("medium")
     return model
+
+class model_new:
+
+    def __init__(self):
+        self.model = stable_whisper.load_model('base.en', device='cpu')
+
+    def generate(self, path_audio:str, srt_path:str, time:float):
+        result = self.model.transcribe(audio=path_audio, verbose=None)
+        result.to_srt_vtt(srt_path, segment_level=False, word_level=True)
+        srt_edit.full_srt_edit(srt_path, timedelta(seconds=time))
 
 
 def generate(audio:list):
@@ -111,11 +125,6 @@ def json_to_srt(json_data, time, chars_per_segment=0):
         for sub_segment in sub_segments:
             start_time = convert_time_to_srt(sub_segment['start'] + time)
             end_time = convert_time_to_srt(sub_segment['end'] + time)
-            print(convert_time_to_srt(sub_segment['start']+time))
-            print(convert_time_to_srt(sub_segment['start']))
-            print('')
-            print(convert_time_to_srt(sub_segment['end']+time))
-            print(convert_time_to_srt(sub_segment['end']))
 
             # Format: Index number
             srt_content.append(str(counter))
@@ -140,7 +149,7 @@ def get_audio_length(file_path):
         audio = File(file_path)
 
         if audio is None:
-            raise Exception("Format wird nicht unterstützt")
+            raise Exception("Format not supported")
 
         # Hole die Länge in Sekunden
         length = float(audio.info.length)
@@ -151,7 +160,5 @@ def get_audio_length(file_path):
         return None
 
 if __name__ == '__main__':
-    l = ['Video_now.mp3']
-    r = generate(l)
-    print(r)
-    print(r[0]['text'])
+    m = model_new()
+    m.generate('./audio_59.mp3', 'test_trans.srt', 0)

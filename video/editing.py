@@ -8,16 +8,19 @@ from moviepy.video.fx.resize import resize
 import subprocess
 import shutil
 
+from numba import short
+
+
 def create_complex_video2(
-        audio_track1_path,
-        audio_track2_path,
-        music_path,
-        video_path,
-        intro_image_path,
-        srt_path,
-        output_path,
-        font_path,
-        tmp_path,
+        audio_track1_path:str,
+        audio_track2_path:str,
+        video_path:str,
+        intro_image_path:str,
+        srt_path:str,
+        output_path:str,
+        font_path:str,
+        tmp_path:str,
+        video_generator,
 ):
     video_tmp_path1 = tmp_path + '_tmp1.mp4'
     video_tmp_path2 = tmp_path + '_tmp2.mp4'
@@ -35,16 +38,32 @@ def create_complex_video2(
         #music.set_start(0)  # Musik als Hintergrund
     ])
 
+    videos = list()
+
+    videos.append(VideoFileClip(video_generator.__next__()))
+    while sum([x.duration for x in videos]) < combined_audio.duration:
+        videos.append(VideoFileClip(video_generator.__next__()))
+
+    video = concatenate_videoclips(videos)
+
+    if video.size[0] * (16/9) == video.size[1]:
+        shorts = True
+    else:
+        shorts = False
+
     # Laden des Videos
-    video = VideoFileClip(video_path).set_duration(combined_audio.duration)
+    #video = VideoFileClip(video_path).set_duration(combined_audio.duration)
     #video = convert_to_vertical(video)
     video = video.set_audio(combined_audio)
-
+    video = video.set_duration(combined_audio.duration)
 
     # Intro-Bild mit Fade-Effekt
     intro_image_clip = ImageClip(intro_image_path)
 
-    image_size = video.size[0] * 1 / 3 -100
+    if shorts is False:
+        image_size = video.size[0] * 1 / 3 - 100
+    else:
+        image_size = video.size[0] - 100
     intro_image_clip = resize(intro_image_clip, width=image_size)
 
     intro_image_clip = intro_image_clip \
@@ -58,26 +77,25 @@ def create_complex_video2(
         intro_image_clip.set_position('center'),
     ])
 
-    # Audio hinzufügen
-
-    # Video exportieren
-
-
     final_video.write_videofile(
         video_tmp_path1,
-        codec='mpeg4',
+        codec='libx264', # libx264 mpeg4
         verbose = False,
         logger=None,
     )
 
-    #subtitles
-    add_subtitles(video_tmp_path1, srt_path, video_tmp_path2, font_path)
+    if shorts is False:
+        #subtitles
+        add_subtitles(video_tmp_path1, srt_path, video_tmp_path2, font_path)
 
-    # vertical
-    ffmpeg_vertical(video_tmp_path2, output_path)
+        # vertical
+        ffmpeg_vertical(video_tmp_path2, output_path)
 
-    os.remove(video_tmp_path1)
-    os.remove(video_tmp_path2)
+        os.remove(video_tmp_path1)
+        os.remove(video_tmp_path2)
+    else:
+        add_subtitles(video_tmp_path1, srt_path, output_path, font_path, shorts=True)
+        os.remove(video_tmp_path1)
 
 
 
@@ -145,7 +163,7 @@ def make_subtitles(sub, font_path, outline_width=5):
 
 
 
-def add_subtitles(video_path, subtitle_path, output_path, font_path):
+def add_subtitles(video_path, subtitle_path, output_path, font_path, shorts:bool=False):
     """
     Fügt eine SRT-Untertiteldatei in ein Video ein.
 
@@ -164,6 +182,9 @@ def add_subtitles(video_path, subtitle_path, output_path, font_path):
         "-loglevel", "error",
         output_path
     ]
+    if shorts is True:
+        command[5] = f"subtitles={subtitle_path}:force_style='Fontname=Arial Bold,FontSize=20,PrimaryColour=&H00FFFFFF,Alignment=10,Outline=2.5,Bold=1'"
+
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as e:
