@@ -11,6 +11,9 @@ from utils.util import exec_command
 from numba import short
 
 
+from numba import short
+
+
 def create_complex_video2(
         audio_track1_path:str,
         audio_track2_path:str,
@@ -182,7 +185,17 @@ def add_subtitles(video_path, subtitle_path, output_path, font_path, shorts:bool
         "-loglevel", "error",
         output_path
     ]
+<<<<<<< HEAD
     exec_command(command)
+=======
+    if shorts is True:
+        command[5] = f"subtitles={subtitle_path}:force_style='Fontname=Arial Bold,FontSize=20,PrimaryColour=&H00FFFFFF,Alignment=10,Outline=2.5,Bold=1'"
+
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        pass
+>>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 
 def ffmpeg_vertical(input_path, output_path):
     command = [

@@ -179,7 +179,11 @@ def wrapper_run(client):
         console=console
     )
     try:
+<<<<<<< HEAD
         run_stages(client, progress, logger, 3, True)
+=======
+        run_stages(client, progress, logger, 7, True)
+>>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
     except Exception as e:
         try:
             progress.stop()

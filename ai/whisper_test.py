@@ -5,8 +5,11 @@ import stable_whisper
 import re
 from datetime import datetime, timedelta
 from . import srt_edit
+<<<<<<< HEAD
 import subprocess
 from utils import util
+=======
+>>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 
 def model():
     model = whisper.load_model("medium")
@@ -17,6 +20,7 @@ class model_new:
     def __init__(self):
         self.model = stable_whisper.load_model('base.en', device='cpu')
 
+<<<<<<< HEAD
     def generate(self, path_audio:str, srt_path:str, time:float, output_ass:str):
         result = self.model.transcribe(audio=path_audio, verbose=None)
         result.to_srt_vtt(srt_path, segment_level=False, word_level=True)
@@ -25,6 +29,12 @@ class model_new:
             pass
         srt_editor = srt_edit.sub_edit(srt_path, output_ass, time)
         srt_editor()
+=======
+    def generate(self, path_audio:str, srt_path:str, time:float):
+        result = self.model.transcribe(audio=path_audio, verbose=None)
+        result.to_srt_vtt(srt_path, segment_level=False, word_level=True)
+        srt_edit.full_srt_edit(srt_path, timedelta(seconds=time))
+>>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 
 
 def generate(audio:list):
@@ -167,6 +177,11 @@ def get_audio_length(file_path):
         return None
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     #m = model_new()
     #m.generate('./audio_59.mp3', 'test_trans.srt', 0)
     print(get_audio_length('./Video_now.mp3'))
+=======
+    m = model_new()
+    m.generate('./audio_59.mp3', 'test_trans.srt', 0)
+>>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8

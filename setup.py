@@ -2,9 +2,13 @@ import os
 import subprocess
 from Cython.Build.Dependencies import join_path
 import cv2
+<<<<<<< HEAD
 
 import stages
 from stages import get_path, return_logger, config_class
+=======
+from stages import get_path, create_new_logger, return_logger, config_class
+>>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 from moviepy.editor import *
 import pandas as pd
 import traceback
@@ -148,13 +152,65 @@ def main():
         except Exception as e:
             logger.error(f'Error occurred when updating video content: {e}\n{traceback.format_exc()}')
 
+def video_updater(cfg:config_class):
+    path_tables = get_path(0, 'video_tables', con=False)
+
+    tables = [x for x in os.listdir(path_tables) if x.endswith('.csv')]
+    names = [split_extension(x)[0] for x in tables]
+    json_data = cfg['download_content']
+
+    for name in names:
+        if not name in json_data.keys():
+            json_data[name] = []
+            os.makedirs(get_path(0, 'media', 'video', name, con=False), exist_ok=True)
+
+    for i, table in enumerate(tables):
+        name = names[i]
+        list_urls:list = json_data[name]
+        urls = check_csv_data(get_path(0, 'video_tables', table, con=False), list_urls)
+
+        download_path = join_path(os.environ['video_location_path'], name)
+
+        for url in urls:
+            download_youtube_video(url, output_path=download_path)
+
+        prerender_videos(path=download_path, shorts=True)
+        for url in urls:
+            list_urls.append(url)
+        #print(list_urls)
+        json_data[name] = list_urls
+
+
+
+def check_csv_data(path:str, json_info):
+    urls = pd.read_csv(path)['url']
+    return_urls = list()
+    for url in urls:
+        if url not in json_info:
+            return_urls.append(url)
+    return return_urls
+
+def main():
+    logger = return_logger()
+    with config_class() as cfg:
+        cfg.load_args()
+        logger.info('loaded args into environment')
+        try:
+            video_updater(cfg)
+            logger.info('Updated video content')
+        except Exception as e:
+            logger.error(f'Error occurred when updating video content: {e}\n{traceback.format_exc()}')
+
 if __name__ == '__main__':
     #path = get_path(0, 'media', 'shorts', con=False)
     #prerender_videos(path, shorts=True)
     #video_updater()
     main()
+<<<<<<< HEAD
     #cfg = stages.config_class()
     #print(cfg.create_new())
     #cfg.load_new_values()
+=======
+>>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 
 

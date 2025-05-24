@@ -18,6 +18,7 @@ pagecrawler==1.1.2
 elevenlabs
 rich
 stable-ts==2.19.0
+<<<<<<< HEAD
 pandas==2.2.3
 srt
 cython
@@ -27,3 +28,6 @@ librosa
 pysrt
 mutagen
 pysubs2
+=======
+pandas==2.2.3
+>>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
