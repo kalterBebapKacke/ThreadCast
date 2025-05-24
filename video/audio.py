@@ -3,6 +3,7 @@ from Cython.Build.Dependencies import join_path
 from pydub import AudioSegment
 import subprocess
 import numpy as np
+from . import remove_silence as rs
 
 def amplify_audio(input_file, gain_factor=1.5):
     """
@@ -38,11 +39,9 @@ def amplify_audio(input_file, gain_factor=1.5):
 def remove_silence(input_path, output_path):
     command = [
         "ffmpeg",
-        "-y",
         "-i", input_path,
-        "-vf",
-        f"silenceremove=start_periods=1:stop_periods=-1:stop_duration=0.2:start_threshold=-45dB:stop_threshold=-45dB",
-        "-c:a", "copy",
+        "-af",
+        f"silenceremove=stop_periods=-1:stop_silence=0.2:start_silence=0.2:stop_duration=0.2:stop_threshold=-25dB",
         "-loglevel", "error",
         output_path
     ]
@@ -51,7 +50,7 @@ def remove_silence(input_path, output_path):
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as e:
         pass
-
+# ffmpeg -i ./text.mp3 -af silenceremove=stop_periods=-1:stop_silence=0.2:start_silence=0.2:stop_duration=0.2:stop_threshold=-25dB ./test.mp3
 # ffmpeg -i text.mp3 -af silenceremove=start_periods=1:stop_periods=-1:stop_duration=0.2:start_threshold=-45dB:stop_threshold=-45dB output.mp3
 
 def speed_up_audio(input_path, output_path, speed_factor):
@@ -96,11 +95,12 @@ def filter_audio(text_path, title_path, content_path):
     amplify_audio(text_path, 0.25)
     amplify_audio(title_path, 0.25)
 
-    remove_silence(text_path, tmp1)
+    #remove_silence(text_path, tmp1)
+    rs.main(input_file=text_path, output_file=tmp1)
 
     # speed up audio
-    speed_up_audio(tmp1, tmp2, 1.10)
-    speed_up_audio(title_path, tmp3, 1.10)
+    speed_up_audio(tmp1, tmp2, 1.12)
+    speed_up_audio(title_path, tmp3, 1.12)
 
     # remove tmp and unnessasary files
     os.remove(text_path)

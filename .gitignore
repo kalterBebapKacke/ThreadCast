@@ -6,6 +6,7 @@ __pycache__/
 # custom
 content
 /media
+/database_voice/
 #Thumnials/media/fertig.svg
 database
 database.sqbpro
@@ -20,7 +21,14 @@ pyextract_here
 PycharmProjects
 .idea/
 Thumnials/media/fertig.svg
+Thumnials/textbox_with_embedded_media.svg
+Thumnials/Reddit Stories Card (Community)(3)/
+cache/
+ai/TTS/
+ai/TTS_/
+ai/audio_59.mp3
 
+xdcv
 # C extensions
 *.so
 
@@ -148,6 +156,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.ven
 env/
 venv/
 ENV/

@@ -19,23 +19,28 @@ def display_text_with_confirmation(title, text:str):
 
     # Benutzerabfrage
     while True:
-        choice = input("\nDo you want to use this? (y/n): ").lower()
+        choice = input("\nDo you want to use this? (y/n/i): ").lower()
         if choice in ['y', 'yes']:
             return True
         elif choice in ['n', 'no']:
             return False
+        elif choice in ['i', 'ignore']:
+            return 'ignore'
         else:
             print("Invalid input")
 
 def display_all(content):
     valid_ids = list()
+    ignore_ids = list()
     for x in content:
         options.clear_screen()
         output = display_text_with_confirmation(x[1], x[0])
         if output is True:
             valid_ids.append(x[2])
+        elif output == 'ignore':
+            ignore_ids.append(x[2])
     options.clear_screen()
-    return valid_ids
+    return valid_ids, ignore_ids
 
 
 def format_text(text:str, max_length):

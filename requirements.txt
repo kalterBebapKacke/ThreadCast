@@ -3,7 +3,7 @@ transformers
 py-cpuinfo
 numpy
 gpt4all==2.8.2
-noideacore==1.4.0
+noideacore==1.4.1
 pydub
 moviepy==1.0.3
 opencv-python
@@ -16,3 +16,14 @@ imblearn
 ffmpeg
 pagecrawler==1.1.2
 elevenlabs
+rich
+stable-ts==2.19.0
+pandas==2.2.3
+srt
+cython
+dotenv
+cairosvg
+librosa
+pysrt
+mutagen
+pysubs2

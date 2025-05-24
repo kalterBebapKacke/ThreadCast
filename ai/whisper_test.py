@@ -1,10 +1,30 @@
 import whisper
 from mutagen import File
 import sys
+import stable_whisper
+import re
+from datetime import datetime, timedelta
+from . import srt_edit
+import subprocess
+from utils import util
 
 def model():
     model = whisper.load_model("medium")
     return model
+
+class model_new:
+
+    def __init__(self):
+        self.model = stable_whisper.load_model('base.en', device='cpu')
+
+    def generate(self, path_audio:str, srt_path:str, time:float, output_ass:str):
+        result = self.model.transcribe(audio=path_audio, verbose=None)
+        result.to_srt_vtt(srt_path, segment_level=False, word_level=True)
+        with open(srt_path, 'r') as f:
+            #print(f.read())
+            pass
+        srt_editor = srt_edit.sub_edit(srt_path, output_ass, time)
+        srt_editor()
 
 
 def generate(audio:list):
@@ -18,6 +38,9 @@ def generate(audio:list):
 
 def generate_single(audio_path:str, model:whisper.Whisper):
     return model.transcribe(audio_path)
+
+def convert_srt_to_ass(input_path, output_path):
+    util.exec_command(['ffmpeg', '-y', '-i', input_path, output_path])
 
 def convert_time_to_srt(seconds):
     """Convert seconds to SRT timestamp format (HH:MM:SS,mmm)"""
@@ -109,8 +132,8 @@ def json_to_srt(json_data, time, chars_per_segment=0):
             sub_segments = [segment]
 
         for sub_segment in sub_segments:
-            start_time = convert_time_to_srt(sub_segment['start']+time)
-            end_time = convert_time_to_srt(sub_segment['end']+time)
+            start_time = convert_time_to_srt(sub_segment['start'] + time)
+            end_time = convert_time_to_srt(sub_segment['end'] + time)
 
             # Format: Index number
             srt_content.append(str(counter))
@@ -131,13 +154,11 @@ def json_to_srt(json_data, time, chars_per_segment=0):
 
 def get_audio_length(file_path):
     try:
-        # Öffne die Audiodatei mit mutagen
         audio = File(file_path)
 
         if audio is None:
-            raise Exception("Format wird nicht unterstützt")
+            raise Exception("Format not supported")
 
-        # Hole die Länge in Sekunden
         length = float(audio.info.length)
         return length
 
@@ -146,7 +167,6 @@ def get_audio_length(file_path):
         return None
 
 if __name__ == '__main__':
-    l = ['Video_now.mp3']
-    r = generate(l)
-    print(r)
-    print(r[0]['text'])
+    #m = model_new()
+    #m.generate('./audio_59.mp3', 'test_trans.srt', 0)
+    print(get_audio_length('./Video_now.mp3'))

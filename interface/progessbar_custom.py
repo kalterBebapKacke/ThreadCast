@@ -1,12 +1,34 @@
 import sys
 import time
 from typing import Dict
+#from options import clear_screen
+
+import sys
+from typing import Dict
 
 
 class ProgressBar:
-    """Eine flexible Progress Bar mit Support für multiple Instanzen und Show/Hide Funktionalität."""
+    """Eine flexible Progress Bar mit Support für multiple Instanzen und Print Management."""
 
     _instances: Dict[str, 'ProgressBar'] = {}
+    _total_bars = 0  # Zählt die Gesamtanzahl der aktiven Bars
+
+    @classmethod
+    def print_text(cls, text: str):
+        """
+        Druckt Text unter allen Progress Bars.
+
+        Args:
+            text: Der zu druckende Text
+        """
+        # Bewege Cursor unter alle Bars
+        sys.stdout.write('\033[%d;0H' % (cls._total_bars + 1))
+        # Drucke den Text
+        print(text)
+        # Aktualisiere alle sichtbaren Bars
+        for bar in cls._instances.values():
+            if bar.visible:
+                bar.print_progress()
 
     def __init__(self, total: int, prefix: str = '', suffix: str = '', decimals: int = 1,
                  length: int = 50, fill: str = '█', print_end: str = '\r', id: str = 'default'):
@@ -37,6 +59,7 @@ class ProgressBar:
 
         # Registriere diese Instanz
         ProgressBar._instances[id] = self
+        ProgressBar._total_bars = max(ProgressBar._total_bars, self.line_position + 1)
 
     def print_progress(self):
         """Druckt den aktuellen Fortschritt."""
@@ -48,11 +71,11 @@ class ProgressBar:
         bar = self.fill * filled_length + '-' * (self.length - filled_length)
 
         # Bewege Cursor zur richtigen Position
-        sys.stdout.write('\033[%d;0H' % (self.line_position + 1))
+        #sys.stdout.write('\033[%d;0H' % (self.line_position + 1))
         print(f'\r{self.prefix} |{bar}| {percent}% {self.suffix}', end=self.print_end)
 
-        if self.current == self.total:
-            print()
+        # Bewege Cursor zurück unter alle Bars
+        #sys.stdout.write('\033[%d;0H' % (ProgressBar._total_bars + 1))
 
     def update(self, current: int = None):
         """
@@ -86,3 +109,36 @@ class ProgressBar:
         for bar in cls._instances.values():
             bar.hide()
         cls._instances.clear()
+        cls._total_bars = 0
+
+
+from time import sleep
+from rich.progress import Progress, BarColumn, TextColumn
+
+# Erstellt ein Progress-Objekt mit individueller Spaltenanordnung
+progress = Progress(
+    TextColumn("[bold blue]{task.description}"),
+    BarColumn(),
+    "[progress.percentage]{task.percentage:>3.0f}%",
+)
+
+# Starte das Rendering
+progress.start()
+
+# Erstelle mehrere Fortschrittsbalken
+task1 = progress.add_task("Task 1", total=100)
+task2 = progress.add_task("Task 2", total=100, visible=False)  # Erst unsichtbar
+task3 = progress.add_task("Task 3", total=100)
+
+for i in range(100):
+    sleep(0.1)
+    progress.update(task1, advance=1)
+
+    # Zeigt Task 2 nach 30% Fortschritt von Task 1 an
+    if i == 30:
+        progress.update(task2, visible=True)
+    print('lol')
+    progress.update(task2, advance=1.5)
+    progress.update(task3, advance=2)
+
+progress.stop()
