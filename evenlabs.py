@@ -7,7 +7,7 @@ import elevenlabs as el
 load_dotenv()
 
 def elenvenlabs_test(text:str):
-    client = el.client.ElevenLabs(api_key=os.environ['key2'])
+    client = el.client.ElevenLabs(api_key=os.environ['key3'])
 
     response = client.text_to_speech.convert(
         voice_id="pNInz6obpgDQGcFmaJgB",

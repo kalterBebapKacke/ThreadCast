@@ -101,6 +101,7 @@ def check_config():
     pass
 
 
+'''
 def video_updater(cfg:config_class):
     path_tables = get_path(0, 'video_tables', con=False)
 
@@ -149,6 +150,8 @@ def main():
         except Exception as e:
             logger.error(f'Error occurred when updating video content: {e}\n{traceback.format_exc()}')
 
+'''
+
 def video_updater(cfg:config_class):
     path_tables = get_path(0, 'video_tables', con=False)
 
@@ -177,8 +180,6 @@ def video_updater(cfg:config_class):
         #print(list_urls)
         json_data[name] = list_urls
 
-
-
 def check_csv_data(path:str, json_info):
     urls = pd.read_csv(path)['url']
     return_urls = list()
@@ -203,8 +204,10 @@ if __name__ == '__main__':
     #prerender_videos(path, shorts=True)
     #video_updater()
     main()
-    #cfg = stages.config_class()
+    cfg = stages.config_class()
     #print(cfg.create_new())
-    #cfg.load_new_values()
+    cfg.load_args()
+    for name, value in os.environ.items():
+        print("{0}: {1}".format(name, value))
 
 

@@ -99,8 +99,8 @@ def filter_audio(text_path, title_path, content_path):
     rs.main(input_file=text_path, output_file=tmp1)
 
     # speed up audio
-    speed_up_audio(tmp1, tmp2, 1.05)
-    speed_up_audio(title_path, tmp3, 1.05)
+    speed_up_audio(tmp1, tmp2, float(os.environ['audio_speed_factor']))
+    speed_up_audio(title_path, tmp3, float(os.environ['audio_speed_factor']))
 
     # remove tmp and unnessasary files
     os.remove(text_path)
