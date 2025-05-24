@@ -180,13 +180,8 @@ def trim_silence(audio, sr, threshold_db=-20, min_silence_duration=0.2,
 
 def main(input_file, output_file, ):
     threshold = -20
-<<<<<<< HEAD
     min_silence = 0.25
     target_silence = 0.25
-=======
-    min_silence = 0.2
-    target_silence = 0.2
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
     fade = 0.01
     padding = 0.05
 

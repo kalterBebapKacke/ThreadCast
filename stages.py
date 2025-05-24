@@ -2,10 +2,7 @@ import datetime
 from Cython.Build.Dependencies import join_path
 from noideacore import sql
 from sympy.parsing.sympy_parser import auto_symbol
-<<<<<<< HEAD
-=======
 import logging
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 from ai import test_gpt
 from ai import whisper_test
 from Thumnials import card
@@ -22,11 +19,8 @@ from ai import filter_abreviations
 import random
 import json
 import traceback
-<<<<<<< HEAD
 from utils import base_config
 from utils.util import exec_command, return_logger
-=======
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 
 logging.getLogger("selenium").setLevel(logging.CRITICAL)
 
@@ -45,15 +39,6 @@ logger_name = 'logger'
 # - later: config for more customisation
 # - SVG verallgemeinern
 # - clear chat-gpt output
-<<<<<<< HEAD
-# - editing: image and subtitles
-# - better minecraft clips (later)
-# - make subtitle highlighting using fonts in the srt, instead of ffmpeg
-# - switch to loading config values from config.json
-# - use real chat-gpt (better quality)
-# - reworking downloading system
-# - spend more time with subtitles
-=======
 # - cache folder
 # - editing: image and subtitles
 # - better minecraft clips (later)
@@ -61,7 +46,6 @@ logger_name = 'logger'
 # - get rid of slight delay on subtitles
 # - cv for downloading clips
 #
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 
 stages = [
     'CollectData', #1
@@ -204,11 +188,7 @@ def create_new_logger():
     logger.propagate = False
     return logger
 
-<<<<<<< HEAD
-def _return_logger():
-=======
 def return_logger():
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
     logger = logging.getLogger(logger_name)
     if not logger.hasHandlers():
         logger = create_new_logger()
@@ -225,7 +205,6 @@ class config_class:
             self.config: dict = self.create_new()
 
     def create_new(self):
-<<<<<<< HEAD
         new_config = base_config.new_config
         tables = [table for table in os.listdir(new_config['args']['video_table_location']) if not os.path.isdir(join_path(new_config['args']['video_table_location'], table))]
         for table in tables:
@@ -256,16 +235,6 @@ class config_class:
                         new[key] = self._load(old[key], new[key])
             return new
 
-=======
-        new_config = {
-            'args' : {'video_use_name':'satisfying_videos',
-                      'video_location_path': get_path(0, 'media', 'video', con=False),
-                      },
-            'download_content' : {'satisfying_videos':[]},
-        }
-        return new_config
-
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
     def __getitem__(self, item):
         return self.config[item]
 
@@ -295,19 +264,12 @@ def save_audio_sample(client, item, invalid_ids:list):
         dest_path = get_path(0, 'media', 'audio_samples', con=False)
 
         if os.path.isfile(scr_path_text):
-<<<<<<< HEAD
             client.basic_write(['audio_samples'], text=item[0].replace("'" , ''))
         if os.path.isfile(scr_path_text):
             client.basic_write(['audio_samples'], text=item[1].replace("'" , ''))
         id_text = client.basic_read(['audio_samples'], 'id', text=item[0].replace("'" , ''))[0][0]
         id_title = client.basic_read(['audio_samples'], 'id', text=item[1].replace("'" , ''))[0][0]
-=======
-            client.basic_write(['audio_samples'], text=item[0])
-        if os.path.isfile(scr_path_text):
-            client.basic_write(['audio_samples'], text=item[1])
-        id_text = client.basic_read(['audio_samples'], 'id', text=item[0])[0][0]
-        id_title = client.basic_read(['audio_samples'], 'id', text=item[1])[0][0]
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
+
 
         shutil.copy(scr_path_title, dest_path)
         shutil.copy(scr_path_text, dest_path)
@@ -504,10 +466,7 @@ def stage_GenerateAudio(client):
     for item in content:
         if not item[2] in invalid_ids:
             update_stage(client, item[2])
-<<<<<<< HEAD
             #pass
-=======
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
     valid_ids = [x[2] for x in content if x[2] not in invalid_ids]
     logger.debug(f'Valid Ids at the End of stage: {valid_ids}')
     logger.debug(f'Invalid Ids at the End of stage: {invalid_ids}')
@@ -560,10 +519,7 @@ def stage_GenerateSUB(client):
 
     # path to srt
     paths_srt = [get_path(x[2], 'transcript.srt') for x in content]
-<<<<<<< HEAD
     paths_ass = [get_path(x[2], 'transcript.ass') for x in content]
-=======
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 
     # time addition to title
     times = [whisper_test.get_audio_length(get_path(x[2], 'title.mp3')) for x in content]
@@ -572,11 +528,7 @@ def stage_GenerateSUB(client):
 
     for i, audio_path in enumerate(paths):
         try:
-<<<<<<< HEAD
             model.generate(audio_path, paths_srt[i], times[i], paths_ass[i])
-=======
-            model.generate(audio_path, paths_srt[i], times[i])
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
         except Exception as e:
             invalid_ids.append(ids[i])
             logger.error(f'Exception occurred when running stage_GenerateSUB(path={audio_path}): {e}\n{traceback.format_exc()}')
@@ -616,11 +568,7 @@ def stage_Edit(client):
                 audio_track2_path=get_path(item[2], 'text.mp3'),
                 video_path=video_path,
                 intro_image_path=get_path(item[2], 'Thumnail.png'),
-<<<<<<< HEAD
                 srt_path=get_path(item[2], 'transcript.ass'),
-=======
-                srt_path=get_path(item[2], 'transcript.srt'),
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
                 output_path=get_path(item[2], f'video_{str(item[2])}.mp4'),
                 font_path=font_path,
                 tmp_path=get_path(item[2], 'video'),
@@ -647,7 +595,6 @@ if __name__ == '__main__':
     clean_content(c)
     logger = create_new_logger()
     #logger.debug('Test')
-<<<<<<< HEAD
     #stage_CollectData(c,)
     #stage_GPT(c)
     #stage_SVG(c)
@@ -658,27 +605,3 @@ if __name__ == '__main__':
     stage_GenerateSUB(c)
     stage_Edit(c)
 
-    #exec_command(['cd', '~'])
-=======
-
-    #stage_CollectData(c,)
-    #stage_GPT(c)
-    #stage_SVG(c)
-
-    #stage_replacing_texts(c)
-
-    #stage_GenerateAudio(c)
-    #stage_FilterAudio(c)
-    stage_GenerateSUB(c)
-    stage_Edit(c)
-
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
-    #editing.convert_to_vertical(video, target)
-
-    #clean_content(c)
-
-
-<<<<<<< HEAD
-
-=======
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8

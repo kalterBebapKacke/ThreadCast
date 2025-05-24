@@ -2,13 +2,10 @@ import os
 import subprocess
 from Cython.Build.Dependencies import join_path
 import cv2
-<<<<<<< HEAD
 
 import stages
 from stages import get_path, return_logger, config_class
-=======
 from stages import get_path, create_new_logger, return_logger, config_class
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 from moviepy.editor import *
 import pandas as pd
 import traceback
@@ -206,11 +203,8 @@ if __name__ == '__main__':
     #prerender_videos(path, shorts=True)
     #video_updater()
     main()
-<<<<<<< HEAD
     #cfg = stages.config_class()
     #print(cfg.create_new())
     #cfg.load_new_values()
-=======
->>>>>>> afc76aa78a748f8a5ba187558dbdec3afb4be4d8
 
 
